@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSC 201 — Java Study Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --card: #1a1a26;
+    --border: #2a2a3e;
+    --accent: #f0c040;
+    --accent2: #40c0f0;
+    --accent3: #f06080;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --correct: #40d090;
+    --wrong: #f06060;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(240,192,64,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,192,64,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  header h1 {
+    font-size: clamp(26px, 6vw, 42px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 28px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #0a0a0f;
+  }
+  .tab-btn:hover:not(.active) { color: var(--text); background: var(--card); }
+
+  /* STUDY PANEL */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* TOPIC NAV */
+  .topic-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .topic-pill {
+    padding: 6px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+  }
+  .topic-pill.active, .topic-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(240,192,64,0.08);
+  }
+
+  /* STUDY CARD */
+  .study-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 16px;
+    display: none;
+    animation: fadeUp 0.3s ease;
+  }
+  .study-card.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .study-card h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .study-card h2 .num {
+    background: rgba(240,192,64,0.15);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .study-card p { line-height: 1.7; color: var(--text); font-size: 15px; margin-bottom: 12px; }
+  .study-card p:last-child { margin-bottom: 0; }
+
+  /* Code block */
+  pre {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 12px 0;
+    color: #c8d8f8;
+  }
+  .kw { color: #f06080; }
+  .ty { color: #40c0f0; }
+  .val { color: #f0c040; }
+  .cm { color: #506070; font-style: italic; }
+  .str { color: #40d090; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  th {
+    background: rgba(240,192,64,0.1);
+    color: var(--accent);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .highlight-box {
+    background: rgba(64,192,240,0.07);
+    border: 1px solid rgba(64,192,240,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .highlight-box strong { color: var(--accent2); }
+
+  .warn-box {
+    background: rgba(240,96,128,0.07);
+    border: 1px solid rgba(240,96,128,0.2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .warn-box strong { color: var(--accent3); }
+
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin-bottom: 6px; line-height: 1.6; font-size: 14px; color: var(--text); }
+  li strong { color: var(--accent); }
+
+  /* QUIZ PANEL */
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .quiz-header h2 { font-size: 18px; font-weight: 700; }
+  .quiz-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .quiz-score span { color: var(--accent); font-weight: 700; }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .q-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.3s ease;
+  }
+  .q-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  .q-text {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .q-code {
+    background: #0d0d18;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: #c8d8f8;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Syne', sans-serif;
+    color: var(--text);
+    text-align: left;
+  }
+  .option:hover:not(.disabled) { border-color: var(--accent); background: rgba(240,192,64,0.06); }
+  .option.correct { border-color: var(--correct); background: rgba(64,208,144,0.1); color: var(--correct); }
+  .option.wrong { border-color: var(--wrong); background: rgba(240,96,96,0.1); color: var(--wrong); }
+  .option.disabled { cursor: default; }
+  .opt-letter {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .option.correct .opt-letter { background: var(--correct); color: #000; }
+  .option.wrong .opt-letter { background: var(--wrong); color: #fff; }
+
+  .explanation {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(64,192,240,0.07);
+    border: 1px solid rgba(64,192,240,0.15);
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    display: none;
+  }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--accent2); }
+
+  .quiz-nav {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 11px 22px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #0a0a0f; }
+  .btn-primary:hover { background: #f0d060; transform: translateY(-1px); }
+  .btn-ghost {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* RESULT */
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 40px 28px;
+    text-align: center;
+    display: none;
+  }
+  .result-card.show { display: block; animation: fadeUp 0.4s ease; }
+  .result-score {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    margin: 12px 0;
+    font-family: 'Space Mono', monospace;
+  }
+  .result-card p { color: var(--muted); margin-bottom: 20px; font-size: 15px; }
+  .result-card .grade { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="tag">CSC 201 · FUTO · Test Prep</div>
+    <h1>Java <span>Fundamentals</span><br>Study Guide</h1>
+    <p>// syntax · data types · variables · operators · programs</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('study')">📖 Study</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">🧪 Quiz</button>
+  </div>
+
+  <!-- ===== STUDY PANEL ===== -->
+  <div class="panel active" id="study-panel">
+    <div class="topic-nav">
+      <button class="topic-pill active" onclick="showTopic(0, this)">1. What is Java?</button>
+      <button class="topic-pill" onclick="showTopic(1, this)">2. Program Structure</button>
+      <button class="topic-pill" onclick="showTopic(2, this)">3. Data Types</button>
+      <button class="topic-pill" onclick="showTopic(3, this)">4. Variables</button>
+      <button class="topic-pill" onclick="showTopic(4, this)">5. Operators</button>
+      <button class="topic-pill" onclick="showTopic(5, this)">6. Input & Output</button>
+      <button class="topic-pill" onclick="showTopic(6, this)">7. Type Casting</button>
+      <button class="topic-pill" onclick="showTopic(7, this)">8. Comments</button>
+    </div>
+
+    <!-- Topic 0: What is Java -->
+    <div class="study-card visible" id="topic-0">
+      <h2><span class="num">01</span> What is Java?</h2>
+      <p>Java is a <strong>high-level, object-oriented programming language</strong> developed by <strong>Sun Microsystems</strong> (now owned by Oracle) in <strong>1995</strong>, created by <strong>James Gosling</strong>.</p>
+      <div class="highlight-box">
+        <strong>Key principle:</strong> "Write Once, Run Anywhere" (WORA) — Java code compiles to <em>bytecode</em> which runs on any machine with a Java Virtual Machine (JVM).
+      </div>
+      <p><strong>Key features of Java:</strong></p>
+      <ul>
+        <li><strong>Platform-independent</strong> — runs on any OS via the JVM</li>
+        <li><strong>Object-Oriented</strong> — everything is organized into classes and objects</li>
+        <li><strong>Strongly typed</strong> — every variable must have a declared type</li>
+        <li><strong>Secure</strong> — built-in security features</li>
+        <li><strong>Robust</strong> — strong memory management, exception handling</li>
+        <li><strong>Multithreaded</strong> — can run multiple tasks simultaneously</li>
+      </ul>
+      <div class="highlight-box">
+        <strong>JDK vs JRE vs JVM:</strong><br>
+        • <strong>JVM</strong> (Java Virtual Machine) — executes bytecode<br>
+        • <strong>JRE</strong> (Java Runtime Environment) — JVM + libraries to run Java programs<br>
+        • <strong>JDK</strong> (Java Development Kit) — JRE + tools to write and compile Java programs
+      </div>
+    </div>
+
+    <!-- Topic 1: Program Structure -->
+    <div class="study-card" id="topic-1">
+      <h2><span class="num">02</span> Basic Program Structure</h2>
+      <p>Every Java program must have at least one <strong>class</strong> and a <strong>main method</strong> — the entry point of the program.</p>
+      <pre><span class="kw">public class</span> <span class="ty">HelloWorld</span> {
+    <span class="kw">public static void</span> main(String[] args) {
+        System.out.println(<span class="str">"Hello, World!"</span>);
+    }
+}</pre>
+      <p><strong>Breaking it down:</strong></p>
+      <ul>
+        <li><strong>public class HelloWorld</strong> — defines a class named HelloWorld. The filename must match: <code>HelloWorld.java</code></li>
+        <li><strong>public static void main(String[] args)</strong> — the main method. Program starts here.</li>
+        <li><strong>System.out.println()</strong> — prints output to the console with a new line</li>
+        <li><strong>System.out.print()</strong> — prints without a new line</li>
+      </ul>
+      <div class="warn-box">
+        <strong>Important rules:</strong><br>
+        • Java is <strong>case-sensitive</strong> (Main ≠ main)<br>
+        • Every statement ends with a <strong>semicolon ( ; )</strong><br>
+        • Code blocks are enclosed in <strong>curly braces { }</strong><br>
+        • The class name must match the filename exactly
+      </div>
+      <p><strong>Execution flow:</strong> Source code (.java) → <em>Compiler (javac)</em> → Bytecode (.class) → <em>JVM</em> → Output</p>
+    </div>
+
+    <!-- Topic 2: Data Types -->
+    <div class="study-card" id="topic-2">
+      <h2><span class="num">03</span> Data Types</h2>
+      <p>Java has two categories of data types: <strong>Primitive</strong> and <strong>Non-primitive (Reference)</strong>.</p>
+      <p><strong>Primitive Data Types (8 total):</strong></p>
+      <table>
+        <tr><th>Type</th><th>Size</th><th>Range / Description</th><th>Example</th></tr>
+        <tr><td>byte</td><td>1 byte</td><td>-128 to 127</td><td>byte b = 10;</td></tr>
+        <tr><td>short</td><td>2 bytes</td><td>-32,768 to 32,767</td><td>short s = 500;</td></tr>
+        <tr><td>int</td><td>4 bytes</td><td>-2,147,483,648 to 2,147,483,647</td><td>int x = 100;</td></tr>
+        <tr><td>long</td><td>8 bytes</td><td>Very large integers</td><td>long l = 999L;</td></tr>
+        <tr><td>float</td><td>4 bytes</td><td>Decimal (6-7 digits precision)</td><td>float f = 3.14f;</td></tr>
+        <tr><td>double</td><td>8 bytes</td><td>Decimal (15-16 digits precision)</td><td>double d = 3.14;</td></tr>
+        <tr><td>char</td><td>2 bytes</td><td>Single character (Unicode)</td><td>char c = 'A';</td></tr>
+        <tr><td>boolean</td><td>1 bit</td><td>true or false only</td><td>boolean ok = true;</td></tr>
+      </table>
+      <div class="warn-box">
+        <strong>Note:</strong> float values need an <strong>f</strong> suffix (3.14f) and long values need an <strong>L</strong> suffix (999L).
+      </div>
+      <p><strong>Non-primitive types</strong> include <strong>String</strong>, Arrays, Classes, and Interfaces. They are stored by reference, not by value.</p>
+      <pre><span class="ty">String</span> name = <span class="str">"Victor"</span>;  <span class="cm">// non-primitive</span>
+<span class="kw">int</span> age = <span class="val">20</span>;            <span class="cm">// primitive</span></pre>
+    </div>
+
+    <!-- Topic 3: Variables -->
+    <div class="study-card" id="topic-3">
+      <h2><span class="num">04</span> Declaring & Initializing Variables</h2>
+      <p>A <strong>variable</strong> is a named storage location in memory that holds a value.</p>
+      <div class="highlight-box">
+        <strong>Syntax:</strong> <code>dataType variableName;</code> &nbsp;&nbsp; or &nbsp;&nbsp; <code>dataType variableName = value;</code>
+      </div>
+      <pre><span class="cm">// Declaration only</span>
+<span class="kw">int</span> studentCount;
+
+<span class="cm">// Declaration + Initialization</span>
+<span class="kw">int</span> studentCount = <span class="val">50</span>;
+<span class="kw">double</span> price = <span class="val">99.99</span>;
+<span class="kw">boolean</span> isActive = <span class="val">true</span>;
+<span class="kw">char</span> grade = <span class="str">'A'</span>;
+<span class="ty">String</span> name = <span class="str">"James"</span>;</pre>
+      <p><strong>Types of variables in Java:</strong></p>
+      <ul>
+        <li><strong>Local variable</strong> — declared inside a method; only accessible within that method</li>
+        <li><strong>Instance variable</strong> — declared inside a class but outside methods; each object has its own copy</li>
+        <li><strong>Static/Class variable</strong> — declared with the <code>static</code> keyword; shared by all objects of the class</li>
+      </ul>
+      <p><strong>Naming rules for variables:</strong></p>
+      <ul>
+        <li>Must start with a letter, underscore (_), or dollar sign ($)</li>
+        <li>Cannot start with a number</li>
+        <li>Cannot be a Java keyword (int, class, void, etc.)</li>
+        <li>Case-sensitive (age ≠ Age)</li>
+        <li>Convention: use <strong>camelCase</strong> (e.g. studentName, totalPrice)</li>
+      </ul>
+      <div class="warn-box">
+        <strong>Constants:</strong> Use the <code>final</code> keyword to make a variable constant (its value cannot change).<br>
+        Convention: use ALL_CAPS for constants.<br>
+        <code>final double PI = 3.14159;</code>
+      </div>
+    </div>
+
+    <!-- Topic 4: Operators -->
+    <div class="study-card" id="topic-4">
+      <h2><span class="num">05</span> Operators</h2>
+      <p><strong>Arithmetic Operators:</strong></p>
+      <table>
+        <tr><th>Operator</th><th>Meaning</th><th>Example</th><th>Result</th></tr>
+        <tr><td>+</td><td>Addition</td><td>5 + 3</td><td>8</td></tr>
+        <tr><td>-</td><td>Subtraction</td><td>5 - 3</td><td>2</td></tr>
+        <tr><td>*</td><td>Multiplication</td><td>5 * 3</td><td>15</td></tr>
+        <tr><td>/</td><td>Division</td><td>10 / 2</td><td>5</td></tr>
+        <tr><td>%</td><td>Modulus (remainder)</td><td>10 % 3</td><td>1</td></tr>
+        <tr><td>++</td><td>Increment</td><td>x++</td><td>x + 1</td></tr>
+        <tr><td>--</td><td>Decrement</td><td>x--</td><td>x - 1</td></tr>
+      </table>
+      <p><strong>Relational/Comparison Operators:</strong> (return boolean)</p>
+      <table>
+        <tr><th>Operator</th><th>Meaning</th></tr>
+        <tr><td>==</td><td>Equal to</td></tr>
+        <tr><td>!=</td><td>Not equal to</td></tr>
+        <tr><td>&gt;</td><td>Greater than</td></tr>
+        <tr><td>&lt;</td><td>Less than</td></tr>
+        <tr><td>&gt;=</td><td>Greater than or equal</td></tr>
+        <tr><td>&lt;=</td><td>Less than or equal</td></tr>
+      </table>
+      <p><strong>Logical Operators:</strong></p>
+      <table>
+        <tr><th>Operator</th><th>Meaning</th><th>Example</th></tr>
+        <tr><td>&&</td><td>AND (both must be true)</td><td>x > 0 && x < 10</td></tr>
+        <tr><td>||</td><td>OR (at least one true)</td><td>x == 0 || x == 1</td></tr>
+        <tr><td>!</td><td>NOT (reverses)</td><td>!isActive</td></tr>
+      </table>
+      <p><strong>Assignment Operators:</strong></p>
+      <table>
+        <tr><th>Operator</th><th>Equivalent</th></tr>
+        <tr><td>x += 5</td><td>x = x + 5</td></tr>
+        <tr><td>x -= 5</td><td>x = x - 5</td></tr>
+        <tr><td>x *= 5</td><td>x = x * 5</td></tr>
+        <tr><td>x /= 5</td><td>x = x / 5</td></tr>
+        <tr><td>x %= 5</td><td>x = x % 5</td></tr>
+      </table>
+    </div>
+
+    <!-- Topic 5: Input & Output -->
+    <div class="study-card" id="topic-5">
+      <h2><span class="num">06</span> Input & Output</h2>
+      <p><strong>Output — System.out:</strong></p>
+      <pre>System.out.println(<span class="str">"Hello"</span>);  <span class="cm">// prints + new line</span>
+System.out.print(<span class="str">"Hello"</span>);    <span class="cm">// prints, no new line</span>
+System.out.printf(<span class="str">"Age: %d"</span>, age);  <span class="cm">// formatted output</span></pre>
+      <p><strong>printf format specifiers:</strong></p>
+      <table>
+        <tr><th>Specifier</th><th>Type</th></tr>
+        <tr><td>%d</td><td>Integer (int, long)</td></tr>
+        <tr><td>%f</td><td>Floating point (float, double)</td></tr>
+        <tr><td>%s</td><td>String</td></tr>
+        <tr><td>%c</td><td>Character</td></tr>
+        <tr><td>%b</td><td>Boolean</td></tr>
+        <tr><td>%n</td><td>New line</td></tr>
+      </table>
+      <p><strong>Input — Scanner class:</strong></p>
+      <pre><span class="kw">import</span> java.util.Scanner;  <span class="cm">// must import at top</span>
+
+<span class="kw">public class</span> <span class="ty">InputExample</span> {
+    <span class="kw">public static void</span> main(String[] args) {
+        Scanner sc = <span class="kw">new</span> Scanner(System.in);
+        System.out.print(<span class="str">"Enter your name: "</span>);
+        <span class="ty">String</span> name = sc.nextLine();
+        System.out.println(<span class="str">"Hello, "</span> + name);
+    }
+}</pre>
+      <p><strong>Common Scanner methods:</strong></p>
+      <table>
+        <tr><th>Method</th><th>Reads</th></tr>
+        <tr><td>nextInt()</td><td>integer</td></tr>
+        <tr><td>nextDouble()</td><td>double</td></tr>
+        <tr><td>next()</td><td>single word (stops at space)</td></tr>
+        <tr><td>nextLine()</td><td>full line of text</td></tr>
+        <tr><td>nextBoolean()</td><td>boolean</td></tr>
+      </table>
+    </div>
+
+    <!-- Topic 6: Type Casting -->
+    <div class="study-card" id="topic-6">
+      <h2><span class="num">07</span> Type Casting</h2>
+      <p><strong>Type casting</strong> is converting a value from one data type to another.</p>
+      <div class="highlight-box">
+        <strong>Widening (Implicit) Casting</strong> — done automatically, no data loss.<br>
+        Order: <code>byte → short → int → long → float → double</code>
+      </div>
+      <pre><span class="kw">int</span> x = <span class="val">10</span>;
+<span class="kw">double</span> y = x;  <span class="cm">// automatic — int to double</span>
+System.out.println(y);  <span class="cm">// 10.0</span></pre>
+      <div class="warn-box">
+        <strong>Narrowing (Explicit) Casting</strong> — must be done manually; may lose data.
+      </div>
+      <pre><span class="kw">double</span> a = <span class="val">9.99</span>;
+<span class="kw">int</span> b = (<span class="kw">int</span>) a;  <span class="cm">// manual cast — truncates decimal</span>
+System.out.println(b);  <span class="cm">// 9 (not rounded!)</span></pre>
+      <p>Narrowing goes in the <strong>reverse</strong> direction: <code>double → float → long → int → short → byte</code></p>
+      <div class="highlight-box">
+        <strong>String conversions:</strong><br>
+        • int to String: <code>String s = String.valueOf(42);</code> or <code>"" + 42</code><br>
+        • String to int: <code>int n = Integer.parseInt("42");</code><br>
+        • String to double: <code>double d = Double.parseDouble("3.14");</code>
+      </div>
+    </div>
+
+    <!-- Topic 7: Comments -->
+    <div class="study-card" id="topic-7">
+      <h2><span class="num">08</span> Comments & Good Practice</h2>
+      <p><strong>Comments</strong> are notes in code that the compiler ignores. They explain what the code does.</p>
+      <pre><span class="cm">// This is a single-line comment</span>
+
+<span class="cm">/* This is a
+   multi-line comment */</span>
+
+<span class="cm">/**
+ * This is a Javadoc comment
+ * Used to document classes and methods
+ */</span>
+<span class="kw">public class</span> <span class="ty">Example</span> {
+    <span class="kw">public static void</span> main(String[] args) {
+        <span class="kw">int</span> x = <span class="val">5</span>; <span class="cm">// stores the number 5</span>
+    }
+}</pre>
+      <p><strong>Quick recap — things to always remember:</strong></p>
+      <ul>
+        <li>Java is <strong>case-sensitive</strong></li>
+        <li>Every statement ends with <strong>;</strong></li>
+        <li>Class name must match <strong>filename</strong></li>
+        <li>Program starts at <strong>main()</strong></li>
+        <li>Use <strong>import</strong> for external classes (like Scanner)</li>
+        <li>Primitive types are lowercase (<code>int</code>, <code>double</code>); String starts with capital <code>S</code></li>
+        <li><strong>= </strong> assigns, <strong>==</strong> compares</li>
+        <li>Integer division truncates: <code>7/2 = 3</code>, not 3.5</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== QUIZ PANEL ===== -->
+  <div class="panel" id="quiz-panel">
+    <div id="quiz-main">
+      <div class="quiz-header">
+        <h2>MCQ Practice Quiz</h2>
+        <div class="quiz-score">Score: <span id="score-display">0</span> / <span id="total-display">0</span></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div id="questions-container"></div>
+      <div class="quiz-nav">
+        <button class="btn btn-ghost" id="prev-btn" onclick="changeQ(-1)" disabled>← Prev</button>
+        <button class="btn btn-ghost" onclick="resetQuiz()">↺ Restart</button>
+        <button class="btn btn-primary" id="next-btn" onclick="changeQ(1)">Next →</button>
+      </div>
+    </div>
+    <div class="result-card" id="result-card">
+      <div class="tag">Quiz Complete</div>
+      <div class="result-score" id="final-score">0/30</div>
+      <div class="grade" id="grade-text"></div>
+      <p id="grade-msg"></p>
+      <button class="btn btn-primary" onclick="resetQuiz()">Try Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "Who created Java?", opts: ["Bill Gates", "James Gosling", "Linus Torvalds", "Dennis Ritchie"], ans: 1, exp: "Java was created by <strong>James Gosling</strong> at Sun Microsystems in 1995." },
+  { q: "What does JVM stand for?", opts: ["Java Variable Machine", "Java Virtual Machine", "Java Visual Module", "Java Verified Memory"], ans: 1, exp: "<strong>JVM</strong> = Java Virtual Machine. It executes Java bytecode on any platform." },
+  { q: "What is the correct syntax to print to the console in Java?", opts: ["print(\"Hello\");", "echo \"Hello\";", "System.out.println(\"Hello\");", "console.log(\"Hello\");"], ans: 2, exp: "<strong>System.out.println()</strong> is the standard Java output statement." },
+  { q: "Which of these is NOT a primitive data type in Java?", opts: ["int", "boolean", "String", "double"], ans: 2, exp: "<strong>String</strong> is a non-primitive (reference) type. int, boolean, and double are primitives." },
+  { q: "How many bytes does an int use in Java?", opts: ["1 byte", "2 bytes", "4 bytes", "8 bytes"], ans: 2, exp: "<strong>int</strong> uses 4 bytes (32 bits) in Java." },
+  { q: "What will this print?\n\nint x = 10 / 3;\nSystem.out.println(x);", opts: ["3.33", "3", "4", "Error"], ans: 1, exp: "Integer division truncates the decimal. 10 / 3 = <strong>3</strong> (not 3.33)." },
+  { q: "Which keyword makes a variable's value unchangeable?", opts: ["static", "const", "final", "fixed"], ans: 2, exp: "<strong>final</strong> makes a variable a constant. e.g., final double PI = 3.14159;" },
+  { q: "What is the correct way to declare a float variable?", opts: ["float f = 3.14;", "float f = 3.14f;", "float f = 3.14d;", "float f = (float)3;"], ans: 1, exp: "Float literals need the <strong>f</strong> suffix: <code>float f = 3.14f;</code>. Without it, Java treats the literal as a double." },
+  { q: "What does the % operator do?", opts: ["Division", "Percentage", "Remainder after division", "Multiplication"], ans: 2, exp: "<strong>%</strong> is the modulus operator — it returns the remainder. e.g., 10 % 3 = 1." },
+  { q: "What is the entry point of every Java program?", opts: ["start() method", "run() method", "main() method", "init() method"], ans: 2, exp: "Every Java program starts execution at the <strong>public static void main(String[] args)</strong> method." },
+  { q: "Which import is needed to use Scanner for user input?", opts: ["import java.io.Scanner;", "import java.util.Scanner;", "import java.input.Scanner;", "No import needed"], ans: 1, exp: "Scanner is in the <strong>java.util</strong> package: <code>import java.util.Scanner;</code>" },
+  { q: "What is widening type casting?", opts: ["Converting a larger type to a smaller one", "Converting a smaller type to a larger one automatically", "Converting a String to int", "None of the above"], ans: 1, exp: "<strong>Widening</strong> = automatic conversion from smaller to larger type (e.g., int → double). No data is lost." },
+  { q: "What will: double d = 9.7; int x = (int) d; give x?", opts: ["10", "9", "9.7", "Error"], ans: 1, exp: "Narrowing cast truncates (doesn't round). (int) 9.7 = <strong>9</strong>." },
+  { q: "Which is a valid variable name in Java?", opts: ["2score", "my-score", "_myScore", "class"], ans: 2, exp: "<strong>_myScore</strong> is valid. Variables can start with underscore. They cannot start with a digit, contain hyphens, or be reserved keywords." },
+  { q: "What does System.out.print() do differently from System.out.println()?", opts: ["It prints in color", "It doesn't add a new line at the end", "It takes no arguments", "It's faster"], ans: 1, exp: "<strong>print()</strong> outputs text without a newline. <strong>println()</strong> appends a newline character after the output." },
+  { q: "Which data type stores a single character?", opts: ["String", "char", "letter", "byte"], ans: 1, exp: "<strong>char</strong> stores a single character, written in single quotes: char c = 'A';" },
+  { q: "What is the result of: 5 == 5?", opts: ["5", "true", "false", "Error"], ans: 1, exp: "<strong>==</strong> is a comparison operator that returns a boolean. 5 == 5 is <strong>true</strong>." },
+  { q: "How do you convert the String \"42\" to an integer in Java?", opts: ["(int) \"42\"", "Integer.parseInt(\"42\")", "int(\"42\")", "Number(\"42\")"], ans: 1, exp: "<strong>Integer.parseInt()</strong> converts a String to int. e.g., int n = Integer.parseInt(\"42\");" },
+  { q: "What is the size of a boolean in Java?", opts: ["4 bytes", "2 bytes", "1 byte", "1 bit (conceptually)"], ans: 3, exp: "A boolean is conceptually <strong>1 bit</strong> (true or false), though the JVM may use more internally." },
+  { q: "Which of these correctly declares a long variable?", opts: ["long x = 100;", "long x = 100L;", "Both A and B", "long x = 100.0;"], ans: 2, exp: "Both work — Java allows plain integers for long. But officially, long literals should have the <strong>L</strong> suffix to be explicit: <code>long x = 100L;</code>" },
+  { q: "What is the correct operator for logical AND?", opts: ["&", "&&", "AND", "||"], ans: 1, exp: "<strong>&&</strong> is the logical AND operator. Both conditions must be true for the result to be true." },
+  { q: "Java is case-sensitive. True or False?", opts: ["True", "False"], ans: 0, exp: "<strong>True.</strong> In Java, 'Main' and 'main' are completely different identifiers." },
+  { q: "What does WORA stand for in Java?", opts: ["Write Once, Run Anywhere", "Write Once, Read Always", "Wide Object Runtime Application", "Write Output, Run Application"], ans: 0, exp: "<strong>WORA</strong> = Write Once, Run Anywhere — Java's core principle of platform independence via the JVM." },
+  { q: "What is bytecode?", opts: ["Machine code specific to Windows", "Intermediate code generated by Java compiler, run by JVM", "Binary code only readable by humans", "Code written in bytes"], ans: 1, exp: "<strong>Bytecode</strong> is platform-independent intermediate code produced by the Java compiler (javac). The JVM then executes it on any platform." },
+  { q: "Which format specifier is used for integers in printf?", opts: ["%s", "%f", "%d", "%i"], ans: 2, exp: "<strong>%d</strong> is used for integers in System.out.printf(). e.g., System.out.printf(\"Age: %d\", 20);" },
+  { q: "What Scanner method reads a full line of text?", opts: ["next()", "nextLine()", "nextString()", "readLine()"], ans: 1, exp: "<strong>nextLine()</strong> reads an entire line including spaces. next() only reads one word." },
+  { q: "What happens if you assign a double value to an int without casting?", opts: ["It rounds automatically", "It compiles fine", "Compile-time error", "Runtime error"], ans: 2, exp: "Assigning double to int without explicit cast causes a <strong>compile-time error</strong> in Java — possible loss of precision." },
+  { q: "What is the naming convention for constants in Java?", opts: ["camelCase", "PascalCase", "ALL_CAPS_WITH_UNDERSCORES", "lowercase"], ans: 2, exp: "Constants use <strong>ALL_CAPS</strong> with underscores by convention. e.g., <code>final int MAX_SIZE = 100;</code>" },
+  { q: "Which is the correct way to write a single-line comment in Java?", opts: ["# This is a comment", "// This is a comment", "<!-- comment -->", "/* comment"], ans: 1, exp: "<strong>//</strong> starts a single-line comment in Java. /* */ is for multi-line comments." },
+  { q: "What is the default value of an int instance variable in Java?", opts: ["null", "undefined", "0", "1"], ans: 2, exp: "Instance variables (not local) are automatically initialized. int defaults to <strong>0</strong>, boolean to false, and reference types to null." },
+];
+
+let current = 0;
+let answered = new Array(questions.length).fill(null);
+let score = 0;
+
+function buildQuiz() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  questions.forEach((q, i) => {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.id = `q-${i}`;
+    div.style.display = i === 0 ? 'block' : 'none';
+
+    const hasCode = q.q.includes('\n');
+    const qText = hasCode ? q.q.split('\n')[0] : q.q;
+    const codeText = hasCode ? q.q.split('\n').slice(1).join('\n') : '';
+
+    div.innerHTML = `
+      <div class="q-num">QUESTION ${i+1} OF ${questions.length}</div>
+      <div class="q-text">${qText}</div>
+      ${codeText ? `<div class="q-code">${codeText}</div>` : ''}
+      <div class="options">
+        ${q.opts.map((opt, j) => `
+          <button class="option" onclick="answer(${i}, ${j})" id="opt-${i}-${j}">
+            <span class="opt-letter">${'ABCD'[j]}</span>
+            ${opt}
+          </button>
+        `).join('')}
+      </div>
+      <div class="explanation" id="exp-${i}">${q.exp}</div>
+    `;
+    container.appendChild(div);
+  });
+  updateNav();
+}
+
+function answer(qIdx, optIdx) {
+  if (answered[qIdx] !== null) return;
+  answered[qIdx] = optIdx;
+
+  const correct = questions[qIdx].ans;
+  const opts = document.querySelectorAll(`#q-${qIdx} .option`);
+  opts.forEach(o => o.classList.add('disabled'));
+  opts[correct].classList.add('correct');
+  if (optIdx !== correct) opts[optIdx].classList.add('wrong');
+
+  document.getElementById(`exp-${qIdx}`).classList.add('show');
+
+  if (optIdx === correct) score++;
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('total-display').textContent = answered.filter(a => a !== null).length;
+
+  updateNav();
+  updateProgress();
+}
+
+function changeQ(dir) {
+  document.getElementById(`q-${current}`).style.display = 'none';
+  current = Math.max(0, Math.min(questions.length - 1, current + dir));
+  document.getElementById(`q-${current}`).style.display = 'block';
+  updateNav();
+
+  if (current === questions.length - 1 && answered.filter(a => a !== null).length === questions.length) {
+    setTimeout(showResult, 500);
+  }
+}
+
+function updateNav() {
+  document.getElementById('prev-btn').disabled = current === 0;
+  const nextBtn = document.getElementById('next-btn');
+  if (current === questions.length - 1) {
+    nextBtn.textContent = 'Finish ✓';
+    nextBtn.onclick = showResult;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.onclick = () => changeQ(1);
+  }
+}
+
+function updateProgress() {
+  const done = answered.filter(a => a !== null).length;
+  document.getElementById('progress-fill').style.width = `${(done / questions.length) * 100}%`;
+}
+
+function showResult() {
+  document.getElementById('quiz-main').style.display = 'none';
+  const rc = document.getElementById('result-card');
+  rc.classList.add('show');
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('final-score').textContent = `${score}/${questions.length}`;
+  const grade = pct >= 80 ? 'Excellent! 🎉' : pct >= 60 ? 'Good job! 👍' : pct >= 40 ? 'Keep studying 📚' : 'Review needed 💪';
+  const msg = pct >= 80 ? "You're well-prepared for that test!" : pct >= 60 ? "Solid understanding — review the topics you missed." : "Go back through the study guide, then retry the quiz.";
+  document.getElementById('grade-text').textContent = grade;
+  document.getElementById('grade-msg').textContent = msg;
+}
+
+function resetQuiz() {
+  answered = new Array(questions.length).fill(null);
+  score = 0;
+  current = 0;
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('total-display').textContent = '0';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('result-card').classList.remove('show');
+  document.getElementById('quiz-main').style.display = 'block';
+  buildQuiz();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (i === 0) === (tab === 'study')));
+  document.getElementById('study-panel').classList.toggle('active', tab === 'study');
+  document.getElementById('quiz-panel').classList.toggle('active', tab === 'quiz');
+}
+
+function showTopic(idx, el) {
+  document.querySelectorAll('.study-card').forEach(c => c.classList.remove('visible'));
+  document.querySelectorAll('.topic-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById(`topic-${idx}`).classList.add('visible');
+  el.classList.add('active');
+}
+
+buildQuiz();
+</script>
+</body>
+</html>
